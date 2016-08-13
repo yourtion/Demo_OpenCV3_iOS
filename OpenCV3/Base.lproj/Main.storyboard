@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15G31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="V8p-mf-GQn">
+                                <rect key="frame" x="20" y="20" width="560" height="522"/>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZeQ-yZ-REP">
+                                <rect key="frame" x="20" y="550" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="btnLeft:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Jy2-fI-SXb"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OF6-YQ-Haj">
+                                <rect key="frame" x="534" y="550" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="btnRight:" destination="BYZ-38-t0r" eventType="touchUpInside" id="JWz-G8-p6P"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Gc9-Wy-UC7">
+                                <rect key="frame" x="283" y="550" width="34" height="30"/>
+                                <state key="normal" title="Start"/>
+                                <connections>
+                                    <action selector="startRun:" destination="BYZ-38-t0r" eventType="touchUpInside" id="3kk-Iw-o3Q"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Gc9-Wy-UC7" firstAttribute="centerX" secondItem="V8p-mf-GQn" secondAttribute="centerX" id="KdL-wB-Boh"/>
+                            <constraint firstItem="V8p-mf-GQn" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="PiV-fc-N16"/>
+                            <constraint firstItem="ZeQ-yZ-REP" firstAttribute="leading" secondItem="V8p-mf-GQn" secondAttribute="leading" id="VX0-pw-keo"/>
+                            <constraint firstAttribute="bottom" secondItem="V8p-mf-GQn" secondAttribute="bottom" constant="58" id="aYZ-LV-PU1"/>
+                            <constraint firstItem="V8p-mf-GQn" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="cjI-tJ-f6Z"/>
+                            <constraint firstItem="Gc9-Wy-UC7" firstAttribute="baseline" secondItem="OF6-YQ-Haj" secondAttribute="baseline" id="efl-6o-78X"/>
+                            <constraint firstItem="OF6-YQ-Haj" firstAttribute="trailing" secondItem="V8p-mf-GQn" secondAttribute="trailing" id="fPz-qS-ryi"/>
+                            <constraint firstItem="ZeQ-yZ-REP" firstAttribute="baseline" secondItem="Gc9-Wy-UC7" secondAttribute="baseline" id="hoY-HP-pHt"/>
+                            <constraint firstItem="V8p-mf-GQn" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="xcj-1b-vZ6"/>
+                            <constraint firstItem="ZeQ-yZ-REP" firstAttribute="top" secondItem="V8p-mf-GQn" secondAttribute="bottom" constant="8" symbolic="YES" id="zBL-N8-8ZY"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="imageView" destination="V8p-mf-GQn" id="eor-dD-MBX"/>
+                        <outlet property="leftBtn" destination="ZeQ-yZ-REP" id="Z3v-kj-nfT"/>
+                        <outlet property="rightBtn" destination="OF6-YQ-Haj" id="t02-VF-UXG"/>
+                        <outlet property="startBtn" destination="Gc9-Wy-UC7" id="0uY-Pe-0al"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="214" y="339"/>
+        </scene>
+    </scenes>
+</document>
