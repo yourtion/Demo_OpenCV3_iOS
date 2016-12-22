@@ -14,21 +14,78 @@
 
 #import "ViewController.h"
 #import <opencv2/opencv.hpp>
+#import <opencv2/videoio/cap_ios.h>
 
 using namespace cv;
 using namespace std;
 
-@interface ViewController ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
+@interface ViewController ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate, CvVideoCameraDelegate>
 @property (weak, nonatomic) IBOutlet UIImageView *imgV1;
 @property (weak, nonatomic) IBOutlet UIImageView *imgV2;
 @property (weak, nonatomic) IBOutlet UILabel *resultLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *hig1;
 @property (weak, nonatomic) IBOutlet UIImageView *hig2;
-
+@property (nonatomic, retain) CvVideoCamera* videoCamera;
 @end
 
 @implementation ViewController {
     NSString *_btn;
+    Mat _mat1;
+}
+
+- (void)processImage:(Mat&)image
+{
+    // Do some OpenCV stuff with the image
+    cv::Mat matDst2;
+//    cv::resize(image,matDst2, cv::Size(288, 288));
+    cv::resize(image, matDst2, cv::Size(8, 8), 0, 0, cv::INTER_CUBIC);
+    cv::cvtColor(matDst2, matDst2, CV_BGR2GRAY);
+    
+    int iAvg1 = 0, iAvg2 = 0;
+    int arr1[64], arr2[64];
+    
+    for (int i = 0; i < 8; i++)
+    {
+        uchar* data1 = _mat1.ptr<uchar>(i);
+        uchar* data2 = matDst2.ptr<uchar>(i);
+        
+        int tmp = i * 8;
+        
+        for (int j = 0; j < 8; j++)
+        {
+            int tmp1 = tmp + j;
+            
+            arr1[tmp1] = data1[j] / 4 * 4;
+            arr2[tmp1] = data2[j] / 4 * 4;
+            
+            iAvg1 += arr1[tmp1];
+            iAvg2 += arr2[tmp1];
+        }
+    }
+    
+    iAvg1 /= 64;
+    iAvg2 /= 64;
+    
+    for (int i = 0; i < 64; i++)
+    {
+        arr1[i] = (arr1[i] >= iAvg1) ? 1 : 0;
+        arr2[i] = (arr2[i] >= iAvg2) ? 1 : 0;
+    }
+    
+    int iDiffNum = 0;
+    
+    for (int i = 0; i < 64; i++)
+        if (arr1[i] != arr2[i])
+            ++iDiffNum;
+    
+    cout<<"iDiffNum = "<<iDiffNum<<endl;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.resultLabel.text = [NSString stringWithFormat:@"得分： %d - %.0f%%", iDiffNum, (64-iDiffNum)/64.f*100];
+    });
+    
+    if (iDiffNum <= 16) {
+        [self.videoCamera stop];
+    }
 }
 
 - (IBAction)btnOne:(id)sender {
@@ -43,13 +100,14 @@ using namespace std;
 }
 
 - (IBAction)btnTwo:(id)sender {
-    _btn = @"2";
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = YES;
-    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    
-    [self presentViewController:picker animated:YES completion:NULL];
+    [self.videoCamera start];
+//    _btn = @"2";
+//    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+//    picker.delegate = self;
+//    picker.allowsEditing = YES;
+//    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+//    
+//    [self presentViewController:picker animated:YES completion:NULL];
     
 }
 
@@ -58,6 +116,11 @@ using namespace std;
     UIImage *chosenImage = info[UIImagePickerControllerEditedImage];
     if ([_btn isEqualToString:@"1"]) {
         self.imgV1.image = chosenImage;
+         Mat image1 = [self cvMatFromUIImage:chosenImage];
+        cv::resize(image1,_mat1, cv::Size(288, 288));
+        cv::resize(_mat1, _mat1, cv::Size(8, 8), 0, 0, cv::INTER_CUBIC);
+        cv::cvtColor(_mat1, _mat1, CV_BGR2GRAY);
+
     }
     
     if ([_btn isEqualToString:@"2"]) {
@@ -74,12 +137,21 @@ using namespace std;
 }
 
 - (IBAction)btnComp:(id)sender {
-    int ret = [self comp:self.imgV1.image to:self.imgV2.image];
-    self.resultLabel.text = [NSString stringWithFormat:@"得分： %d", ret];
+    [self.videoCamera stop];
+//    int ret = [self comp:self.imgV1.image to:self.imgV2.image];
+//    self.resultLabel.text = [NSString stringWithFormat:@"得分： %d", ret];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.videoCamera = [[CvVideoCamera alloc] initWithParentView:self.imgV2];
+    self.videoCamera.defaultAVCaptureDevicePosition = AVCaptureDevicePositionBack;
+    self.videoCamera.defaultAVCaptureSessionPreset = AVCaptureSessionPreset352x288;
+    self.videoCamera.defaultAVCaptureVideoOrientation = AVCaptureVideoOrientationPortrait;
+    self.videoCamera.defaultFPS = 30;
+    self.videoCamera.grayscaleMode = NO;
+    self.videoCamera.delegate = self;
+
 }
 
 
