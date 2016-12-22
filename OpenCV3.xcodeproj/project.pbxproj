@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CB2D3D941E0C071B00BB0878 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB2D3D931E0C071B00BB0878 /* opencv2.framework */; };
 		CBACBED31D473A160096C5F8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBACBED21D473A150096C5F8 /* Accelerate.framework */; };
 		CBACBED51D473A1B0096C5F8 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBACBED41D473A1B0096C5F8 /* AssetsLibrary.framework */; };
 		CBACBED71D473A240096C5F8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBACBED61D473A240096C5F8 /* AVFoundation.framework */; };
@@ -21,10 +22,10 @@
 		CBF8AC741CD089B100D0B824 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CBF8AC721CD089B100D0B824 /* Main.storyboard */; };
 		CBF8AC761CD089B100D0B824 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CBF8AC751CD089B100D0B824 /* Assets.xcassets */; };
 		CBF8AC791CD089B100D0B824 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CBF8AC771CD089B100D0B824 /* LaunchScreen.storyboard */; };
-		CBF8AC811CD089CF00D0B824 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CBF8AC801CD089CF00D0B824 /* opencv2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CB2D3D931E0C071B00BB0878 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 		CBACBED11D4738AD0096C5F8 /* OpenCV3-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "OpenCV3-Prefix.pch"; path = "OpenCV3/OpenCV3-Prefix.pch"; sourceTree = "<group>"; };
 		CBACBED21D473A150096C5F8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		CBACBED41D473A1B0096C5F8 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
@@ -44,7 +45,6 @@
 		CBF8AC751CD089B100D0B824 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CBF8AC781CD089B100D0B824 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CBF8AC7A1CD089B100D0B824 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CBF8AC801CD089CF00D0B824 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,12 +55,12 @@
 				CBACBEE11D473A430096C5F8 /* QuartzCore.framework in Frameworks */,
 				CBACBEDF1D473A3D0096C5F8 /* CoreVideo.framework in Frameworks */,
 				CBACBEDD1D473A350096C5F8 /* CoreMedia.framework in Frameworks */,
+				CB2D3D941E0C071B00BB0878 /* opencv2.framework in Frameworks */,
 				CBACBEDB1D473A2F0096C5F8 /* CoreImage.framework in Frameworks */,
 				CBACBED91D473A2A0096C5F8 /* CoreGraphics.framework in Frameworks */,
 				CBACBED71D473A240096C5F8 /* AVFoundation.framework in Frameworks */,
 				CBACBED51D473A1B0096C5F8 /* AssetsLibrary.framework in Frameworks */,
 				CBACBED31D473A160096C5F8 /* Accelerate.framework in Frameworks */,
-				CBF8AC811CD089CF00D0B824 /* opencv2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,6 +95,7 @@
 		CBF8AC681CD089B100D0B824 /* OpenCV3 */ = {
 			isa = PBXGroup;
 			children = (
+				CB2D3D931E0C071B00BB0878 /* opencv2.framework */,
 				CBF8AC6C1CD089B100D0B824 /* AppDelegate.h */,
 				CBF8AC6D1CD089B100D0B824 /* AppDelegate.m */,
 				CBF8AC6F1CD089B100D0B824 /* ViewController.h */,
@@ -103,7 +104,6 @@
 				CBF8AC751CD089B100D0B824 /* Assets.xcassets */,
 				CBF8AC771CD089B100D0B824 /* LaunchScreen.storyboard */,
 				CBF8AC7A1CD089B100D0B824 /* Info.plist */,
-				CBF8AC801CD089CF00D0B824 /* opencv2.framework */,
 				CBF8AC691CD089B100D0B824 /* Supporting Files */,
 			);
 			path = OpenCV3;
@@ -148,6 +148,7 @@
 				TargetAttributes = {
 					CBF8AC651CD089B100D0B824 = {
 						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = CV2JKHPWU5;
 					};
 				};
 			};
@@ -301,6 +302,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = CV2JKHPWU5;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/OpenCV3",
@@ -317,6 +320,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = CV2JKHPWU5;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/OpenCV3",
