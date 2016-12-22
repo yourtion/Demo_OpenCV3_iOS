@@ -75,7 +75,7 @@ using namespace std;
 
 - (IBAction)btnComp:(id)sender {
     int ret = [self comp:self.imgV1.image to:self.imgV2.image];
-    self.resultLabel.text = [NSString stringWithFormat:@"SIFT 匹配： %d", ret];
+    self.resultLabel.text = [NSString stringWithFormat:@"得分： %d", ret];
 }
 
 - (void)viewDidLoad {
@@ -88,81 +88,62 @@ using namespace std;
     Mat image1 = [self cvMatFromUIImage:img1];
     Mat image2 = [self cvMatFromUIImage:img2];
     
-    Ptr<FeatureDetector> detector;
-    Ptr<DescriptorExtractor> extractor;
+    cv::Mat matDst1, matDst2;
     
-//    initModule_nonfree();
-    /*
-     * SIFT,SURF, ORB
-     */
-    detector = cv::KAZE::create("SIFT");
-    extractor = cv::KAZE::create("SIFT");
+    cv::resize(image1, matDst1, cv::Size(8, 8), 0, 0, cv::INTER_CUBIC);
+    cv::resize(image2, matDst2, cv::Size(8, 8), 0, 0, cv::INTER_CUBIC);
     
-    clock_t begin = clock();
+    cv::cvtColor(matDst1, matDst1, CV_BGR2GRAY);
+    cv::cvtColor(matDst2, matDst2, CV_BGR2GRAY);
     
-    vector<KeyPoint> keypoints1, keypoints2;
-    detector->detect(image1, keypoints1);
-    detector->detect(image2, keypoints2);
+    int iAvg1 = 0, iAvg2 = 0;
+    int arr1[64], arr2[64];
     
-    cout << "# keypoints of image1 :" << keypoints1.size() << endl;
-    cout << "# keypoints of image2 :" << keypoints2.size() << endl;
-    
-    Mat descriptors1,descriptors2;
-    extractor->compute(image1,keypoints1,descriptors1);
-    extractor->compute(image2,keypoints2,descriptors2);
-    
-    
-    
-    cout << "Descriptors size :" << descriptors1.cols << ":"<< descriptors1.rows << endl;
-    
-    vector< vector<DMatch> > matches12, matches21;
-    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
-    matcher->knnMatch( descriptors1, descriptors2, matches12, 2 );
-    matcher->knnMatch( descriptors2, descriptors1, matches21, 2 );
-    
-    // BFMatcher bfmatcher(NORM_L2, true);
-    // vector<DMatch> matches;
-    // bfmatcher.match(descriptors1, descriptors2, matches);
-    cout << "Matches1-2:" << matches12.size() << endl;
-    cout << "Matches2-1:" << matches21.size() << endl;
-    
-    // ratio test proposed by David Lowe paper = 0.8
-    std::vector<DMatch> good_matches1, good_matches2;
-    
-    for(int i=0; i < matches12.size(); i++){
-        const float ratio = 0.8;
-        if(matches12[i][0].distance < ratio * matches12[i][1].distance)
-            good_matches1.push_back(matches12[i][0]);
-    }
-    
-    for(int i=0; i < matches21.size(); i++){
-        const float ratio = 0.8;
-        if(matches21[i][0].distance < ratio * matches21[i][1].distance)
-            good_matches2.push_back(matches21[i][0]);
-    }
-    
-    cout << "Good matches1:" << good_matches1.size() << endl;
-    cout << "Good matches2:" << good_matches2.size() << endl;
-    
-    // Symmetric Test
-    std::vector<DMatch> better_matches;
-    for(int i=0; i<good_matches1.size(); i++){
-        for(int j=0; j<good_matches2.size(); j++){
-            if(good_matches1[i].queryIdx == good_matches2[j].trainIdx && good_matches2[j].queryIdx == good_matches1[i].trainIdx){
-                better_matches.push_back(DMatch(good_matches1[i].queryIdx, good_matches1[i].trainIdx, good_matches1[i].distance));
-                break;
-            }
+    for (int i = 0; i < 8; i++)
+    {
+        uchar* data1 = matDst1.ptr<uchar>(i);
+        uchar* data2 = matDst2.ptr<uchar>(i);
+        
+        int tmp = i * 8;
+        
+        for (int j = 0; j < 8; j++)
+        {
+            int tmp1 = tmp + j;
+            
+            arr1[tmp1] = data1[j] / 4 * 4;
+            arr2[tmp1] = data2[j] / 4 * 4;
+            
+            iAvg1 += arr1[tmp1];
+            iAvg2 += arr2[tmp1];
         }
     }
     
-    cout << "Better matches:" << better_matches.size() << endl;
+    iAvg1 /= 64;
+    iAvg2 /= 64;
     
-    clock_t end = clock();
-    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    cout << "Time Costs : " << elapsed_secs << endl;
-
+    for (int i = 0; i < 64; i++)
+    {
+        arr1[i] = (arr1[i] >= iAvg1) ? 1 : 0;
+        arr2[i] = (arr2[i] >= iAvg2) ? 1 : 0;
+    }
     
-    return better_matches.size();
+    int iDiffNum = 0;
+    
+    for (int i = 0; i < 64; i++)
+        if (arr1[i] != arr2[i])
+            ++iDiffNum;
+    
+    cout<<"iDiffNum = "<<iDiffNum<<endl;
+    
+    if (iDiffNum <= 5)
+        cout<<"two images are very similar!"<<endl;
+    else if (iDiffNum > 10)
+        cout<<"they are two different images!"<<endl;
+    else
+        cout<<"two image are somewhat similar!"<<endl;
+    
+    getchar();
+    return iDiffNum;
 }
 
 
