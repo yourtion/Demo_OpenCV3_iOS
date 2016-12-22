@@ -311,7 +311,7 @@
 				GCC_PREFIX_HEADER = "$(PROJECT_DIR)/OpenCV3/OpenCV3-Prefix.pch";
 				INFOPLIST_FILE = OpenCV3/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourtion.OpenCV3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourtion.OpenCV3.emd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -329,7 +329,7 @@
 				GCC_PREFIX_HEADER = "$(PROJECT_DIR)/OpenCV3/OpenCV3-Prefix.pch";
 				INFOPLIST_FILE = OpenCV3/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourtion.OpenCV3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourtion.OpenCV3.emd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
