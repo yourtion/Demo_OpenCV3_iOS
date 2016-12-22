@@ -14,7 +14,9 @@
 
 #import "ViewController.h"
 #import <opencv2/opencv.hpp>
+
 using namespace cv;
+using namespace std;
 
 @interface ViewController ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 @property (weak, nonatomic) IBOutlet UIImageView *imgV1;
@@ -72,8 +74,8 @@ using namespace cv;
 }
 
 - (IBAction)btnComp:(id)sender {
-    float ret = [self comp:self.imgV1.image to:self.imgV2.image];
-    self.resultLabel.text = [NSString stringWithFormat:@"得分： %f", ret];
+    int ret = [self comp:self.imgV1.image to:self.imgV2.image];
+    self.resultLabel.text = [NSString stringWithFormat:@"SIFT 匹配： %d", ret];
 }
 
 - (void)viewDidLoad {
@@ -81,113 +83,86 @@ using namespace cv;
 }
 
 
--(float)comp:(UIImage *)img1 to:(UIImage *)img2 {
-    IplImage *src1= [self CreateIplImageFromUIImage:img1];
-    IplImage *src2 = [self CreateIplImageFromUIImage:img2];
+-(int)comp:(UIImage *)img1 to:(UIImage *)img2 {
     
-    // HSV image and decompose into separate planes
+    Mat image1 = [self cvMatFromUIImage:img1];
+    Mat image2 = [self cvMatFromUIImage:img2];
     
-    IplImage* hsv1 = cvCreateImage( cvGetSize(src1), 8, 3 );
-    cvCvtColor( src1, hsv1, CV_BGR2HSV);
+    Ptr<FeatureDetector> detector;
+    Ptr<DescriptorExtractor> extractor;
+    
+//    initModule_nonfree();
+    /*
+     * SIFT,SURF, ORB
+     */
+    detector = cv::KAZE::create("SIFT");
+    extractor = cv::KAZE::create("SIFT");
+    
+    clock_t begin = clock();
+    
+    vector<KeyPoint> keypoints1, keypoints2;
+    detector->detect(image1, keypoints1);
+    detector->detect(image2, keypoints2);
+    
+    cout << "# keypoints of image1 :" << keypoints1.size() << endl;
+    cout << "# keypoints of image2 :" << keypoints2.size() << endl;
+    
+    Mat descriptors1,descriptors2;
+    extractor->compute(image1,keypoints1,descriptors1);
+    extractor->compute(image2,keypoints2,descriptors2);
     
     
-    IplImage* h_plane1 = cvCreateImage( cvGetSize(src1), 8, 1 );
-    IplImage* s_plane1 = cvCreateImage( cvGetSize(src1), 8, 1 );
-    IplImage* v_plane1 = cvCreateImage( cvGetSize(src1), 8, 1 );
-    IplImage* planes1[] = { h_plane1, s_plane1 };
-    cvCvtPixToPlane( hsv1, h_plane1, s_plane1, v_plane1, 0 );
     
-    IplImage* hsv2 = cvCreateImage( cvGetSize(src2), 8, 3 );
-    cvCvtColor( src2, hsv2, CV_BGR2HSV);
+    cout << "Descriptors size :" << descriptors1.cols << ":"<< descriptors1.rows << endl;
     
+    vector< vector<DMatch> > matches12, matches21;
+    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
+    matcher->knnMatch( descriptors1, descriptors2, matches12, 2 );
+    matcher->knnMatch( descriptors2, descriptors1, matches21, 2 );
     
-    IplImage* h_plane2 = cvCreateImage( cvGetSize(src2), 8, 1 );
-    IplImage* s_plane2 = cvCreateImage( cvGetSize(src2), 8, 1 );
-    IplImage* v_plane2 = cvCreateImage( cvGetSize(src2), 8, 1 );
-    IplImage* planes2[] = { h_plane2, s_plane2 };
-    cvCvtPixToPlane( hsv2, h_plane2, s_plane2, v_plane2, 0 );
+    // BFMatcher bfmatcher(NORM_L2, true);
+    // vector<DMatch> matches;
+    // bfmatcher.match(descriptors1, descriptors2, matches);
+    cout << "Matches1-2:" << matches12.size() << endl;
+    cout << "Matches2-1:" << matches21.size() << endl;
     
-    // Build the histogram amd compute
-    int h_bins = 30, s_bins = 32;
-    CvHistogram *hist1, *hist2;
-    {
-        int hist_size[] = { h_bins, s_bins };
-        float h_ranges[] = { 0, 180 };
-        float s_ranges[] = { 0, 255 };
-        float* ranges[] = { h_ranges, s_ranges };
-        hist1 = cvCreateHist( 2, hist_size, CV_HIST_ARRAY, ranges, 1 );
-        hist2 = cvCreateHist( 2, hist_size, CV_HIST_ARRAY, ranges, 1 );
+    // ratio test proposed by David Lowe paper = 0.8
+    std::vector<DMatch> good_matches1, good_matches2;
+    
+    for(int i=0; i < matches12.size(); i++){
+        const float ratio = 0.8;
+        if(matches12[i][0].distance < ratio * matches12[i][1].distance)
+            good_matches1.push_back(matches12[i][0]);
     }
-    cvCalcHist( planes1, hist1, 0, 0 );
-    cvNormalizeHist( hist1, 1.0 );
     
-    cvCalcHist( planes2, hist2, 0, 0 );
-    cvNormalizeHist( hist2, 1.0 );
+    for(int i=0; i < matches21.size(); i++){
+        const float ratio = 0.8;
+        if(matches21[i][0].distance < ratio * matches21[i][1].distance)
+            good_matches2.push_back(matches21[i][0]);
+    }
     
-    // Get signature using EMD
-    CvMat *sig1,*sig2;
-    int numrows = h_bins * s_bins;
+    cout << "Good matches1:" << good_matches1.size() << endl;
+    cout << "Good matches2:" << good_matches2.size() << endl;
     
-    sig1 = cvCreateMat(numrows, 3, CV_32FC1);
-    sig2 = cvCreateMat(numrows, 3, CV_32FC1);
-    
-    // Create image to visualize
-    int scale = 10;
-    IplImage* hist_img1 = cvCreateImage( cvSize(h_bins*scale, s_bins*scale), 8, 3);
-    cvZero( hist_img1 );
-    IplImage* hist_img2 = cvCreateImage( cvSize(h_bins*scale, s_bins*scale), 8, 3);
-    cvZero( hist_img2 );
-    
-    float max_value1 = 0;
-    cvGetMinMaxHistValue( hist1, 0, &max_value1, 0, 0 );
-    float max_value2 = 0;
-    cvGetMinMaxHistValue( hist2, 0, &max_value2, 0, 0 );
-    
-    // Fill
-    for ( int h = 0; h < h_bins; h ++ ) {
-        for ( int s = 0; s < s_bins ; s++ ) {
-            float bin_val1 = cvQueryHistValue_2D( hist1, h, s );
-            float bin_val2 = cvQueryHistValue_2D( hist2, h, s );
-            // Image
-            int intensity1 = cvRound( bin_val1 * 255 / max_value1 );
-            cvRectangle(hist_img1,
-                        cvPoint( h*scale, s*scale ),
-                        cvPoint( (h+1)*scale-1, (s+1)*scale-1 ),
-                        CV_RGB(intensity1, intensity1, intensity1),
-                        CV_FILLED
-                        );
-            int intensity2 = cvRound( bin_val2 * 255 / max_value2 );
-            cvRectangle(hist_img2,
-                        cvPoint( h*scale, s*scale ),
-                        cvPoint( (h+1)*scale-1, (s+1)*scale-1 ),
-                        CV_RGB(intensity2, intensity2, intensity2),
-                        CV_FILLED
-                        );
-            
-            // Signature
-            cvSet2D(sig1, h*s_bins+s, 0, cvScalar(bin_val1)); // bin value
-            cvSet2D(sig1, h*s_bins+s, 1, cvScalar(h)); // Coord 1
-            cvSet2D(sig1, h*s_bins+s, 2, cvScalar(s)); // Coord 2
-            cvSet2D(sig2, h*s_bins+s, 0, cvScalar(bin_val2)); // bin value
-            cvSet2D(sig2, h*s_bins+s, 1, cvScalar(h)); // Coord 1
-            cvSet2D(sig2, h*s_bins+s, 2, cvScalar(s)); // Coord 2
+    // Symmetric Test
+    std::vector<DMatch> better_matches;
+    for(int i=0; i<good_matches1.size(); i++){
+        for(int j=0; j<good_matches2.size(); j++){
+            if(good_matches1[i].queryIdx == good_matches2[j].trainIdx && good_matches2[j].queryIdx == good_matches1[i].trainIdx){
+                better_matches.push_back(DMatch(good_matches1[i].queryIdx, good_matches1[i].trainIdx, good_matches1[i].distance));
+                break;
+            }
         }
     }
     
-    float emd = cvCalcEMD2( sig1, sig2, CV_DIST_L2);
-    self.hig1.image = [self UIImageFromIplImage:hist_img1];
-    self.hig2.image = [self UIImageFromIplImage:hist_img2];
-    printf("EMD : %f ;", emd);
+    cout << "Better matches:" << better_matches.size() << endl;
     
-    cvReleaseImage( &src1 );
-    cvReleaseImage( &hist_img1 );
-    cvReleaseHist( &hist1 );
-    cvReleaseMat( &sig1 );
-    cvReleaseImage( &src2 );
-    cvReleaseImage( &hist_img2 );
-    cvReleaseHist( &hist2 );
-    cvReleaseMat( &sig2 );
-    return emd;
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    cout << "Time Costs : " << elapsed_secs << endl;
+
+    
+    return better_matches.size();
 }
 
 
@@ -244,6 +219,52 @@ using namespace cv;
     CGDataProviderRelease(provider);
     CGColorSpaceRelease(colorSpace);
     return ret;
+}
+
+- (cv::Mat)cvMatFromUIImage:(UIImage *)image
+{
+    CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
+    CGFloat cols = image.size.width;
+    CGFloat rows = image.size.height;
+    
+    cv::Mat cvMat(rows, cols, CV_8UC4); // 8 bits per component, 4 channels (color channels + alpha)
+    
+    CGContextRef contextRef = CGBitmapContextCreate(cvMat.data,                 // Pointer to  data
+                                                    cols,                       // Width of bitmap
+                                                    rows,                       // Height of bitmap
+                                                    8,                          // Bits per component
+                                                    cvMat.step[0],              // Bytes per row
+                                                    colorSpace,                 // Colorspace
+                                                    kCGImageAlphaNoneSkipLast |
+                                                    kCGBitmapByteOrderDefault); // Bitmap info flags
+    
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
+    CGContextRelease(contextRef);
+    
+    return cvMat;
+}
+
+- (cv::Mat)cvMatGrayFromUIImage:(UIImage *)image
+{
+    CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
+    CGFloat cols = image.size.width;
+    CGFloat rows = image.size.height;
+    
+    cv::Mat cvMat(rows, cols, CV_8UC1); // 8 bits per component, 1 channels
+    
+    CGContextRef contextRef = CGBitmapContextCreate(cvMat.data,                 // Pointer to data
+                                                    cols,                       // Width of bitmap
+                                                    rows,                       // Height of bitmap
+                                                    8,                          // Bits per component
+                                                    cvMat.step[0],              // Bytes per row
+                                                    colorSpace,                 // Colorspace
+                                                    kCGImageAlphaNoneSkipLast |
+                                                    kCGBitmapByteOrderDefault); // Bitmap info flags
+    
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
+    CGContextRelease(contextRef);
+    
+    return cvMat;
 }
 
 
